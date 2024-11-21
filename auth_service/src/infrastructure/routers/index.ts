@@ -8,7 +8,8 @@ import { validateConfirmPasswordMiddleware, validateEmailMiddleware, validatePas
 
 export const routes = (dependancies: IDependencies) => {
     const {
-        signup,verifyotp,resendotp,getUser,logout,login,googleAuth,registerForm
+        signup,verifyotp,resendotp,getUser,logout,login,googleAuth,registerForm,
+        forgotPassword,updatePassword,changePassword
 
     } = controllers(dependancies)
 
@@ -20,6 +21,9 @@ export const routes = (dependancies: IDependencies) => {
     router.route("/google-auth").post(googleAuth)
     router.route("/verify-otp").post(verifyotp);
     router.route("/resend-otp").post(resendotp);
+    router.route("/forgot-password-mail").post(forgotPassword);
+    router.route("/update-password").post(updatePassword);
+    router.route("/change-password").post(changePassword);
     router.route("/register-form").post(registerForm)
     router.route("/getuser").get(jwtMiddleware,getUser);
     router.route("/logout").delete(logout)

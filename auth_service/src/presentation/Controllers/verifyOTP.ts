@@ -1,5 +1,6 @@
 import { NextFunction,Request,Response } from "express";
 import { IDependencies } from "../../application/interfaces/IDependencies";
+import { HttpStatusCode } from "../../_lib/common/HttpStatusCode";
 
 export const verifyOTPController = (dependencies:IDependencies) => {
    const {useCases} = dependencies;
@@ -15,12 +16,12 @@ export const verifyOTPController = (dependencies:IDependencies) => {
 
         if (!result) {
              res
-                .status(401)
+                .status(HttpStatusCode.UNAUTHORIZED)
                 .json({ success: false, data: {}, message: "OTP doesnt match" });
         } else {
 
              res
-                .status(200)
+                .status(HttpStatusCode.OK)
                 .json({
                     success: true,
                     data: {},

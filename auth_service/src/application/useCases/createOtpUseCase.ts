@@ -1,3 +1,4 @@
+import { constant } from "../../_lib/common/constant";
 import { IDependencies } from "../interfaces/IDependencies";
 
 export const createOtpUseCase = (dependencies:IDependencies) => {
@@ -11,7 +12,7 @@ export const createOtpUseCase = (dependencies:IDependencies) => {
                 
                 return await createOtp(email,otp);
             }
-            catch(error:any){
+            catch(error:constant){
                 throw new Error(error?.message||"User otp Creation failed");
                 
             }

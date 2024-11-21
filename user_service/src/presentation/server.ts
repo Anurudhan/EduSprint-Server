@@ -5,13 +5,17 @@ import morgan from "morgan";
 
 import helmet from 'helmet'
 import cors from 'cors'
+import { logger } from "../_lib/utilities/middleware/logger";
+import { userRoutes } from "../infrastructure/routers";
+import { dependencies } from "../_boot/dependencies";
 
 // Load environment-specific variables
-if (process.env.NODE_ENV === "production") {
-  config({ path: "./.env.production" });
-} else {
-  config({ path: "./.env.local" });
-}
+// if (process.env.NODE_ENV === "production") {
+//   config({ path: "./.env.production" });
+// } else {
+//   config({ path: "./.env.local" });
+// }
+config();
 
 console.log(process.env.FRONTEND_URL,"=======user=========");
 
@@ -27,19 +31,22 @@ const corsOptions = {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(morgan("dev"));
+const morganStream = {
+  write: (message: any) => logger.info(message.trim()) 
+};
+app.use(morgan('combined', { stream: morganStream }));
 app.use(helmet())
 app.use(cors(corsOptions))
 
 //test route
-app.get("/api/user/test", (req: Request, res: Response) => {
+app.get("/user/test", (req: Request, res: Response) => {
   res.status(200).json({
     message: "User service ON!",
   });
 });
 
-// app.use("/api/user", userRoutes(dependencies));
-// app.use("/", userRoutes(dependencies));
+// app.use("/user", userRoutes(dependencies));
+app.use("/", userRoutes(dependencies));
 
 app.use("*", (req: Request, res: Response) => {
   res
@@ -49,7 +56,7 @@ app.use("*", (req: Request, res: Response) => {
 
 const start = () => {
   app.listen(PORT, () => {
-    console.log(`The ${process.env.SERVICE} is listening on port ${PORT}`);
+    console.log(`The user-service is listening on port ${PORT}`);
   });
 };
 

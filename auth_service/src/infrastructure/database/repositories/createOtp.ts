@@ -1,3 +1,4 @@
+import { constant } from "../../../_lib/common/constant";
 import { Otp } from "../models";
 
 export const createOtp = async (
@@ -19,7 +20,7 @@ export const createOtp = async (
     }
 
     return true;
-  } catch (error: any) {
+  } catch (error: constant) {
     console.log(error, "Something Went wrong");
     return false;
   }

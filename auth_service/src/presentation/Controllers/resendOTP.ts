@@ -1,6 +1,7 @@
 import { NextFunction,Request,Response } from "express";
 import { IDependencies } from "../../application/interfaces/IDependencies";
 import { generateOTP, sendOTP } from "../../_lib/utility/otp";
+import { HttpStatusCode } from "../../_lib/common/HttpStatusCode";
 
 export const    resendOTPController = (dependencies:IDependencies) => {
    const {useCases} = dependencies;
@@ -13,17 +14,18 @@ export const    resendOTPController = (dependencies:IDependencies) => {
 
         const otp = await generateOTP();
         console.log("Your otp is =>" + otp);
+        console.log("Your email  =>" + email);
         await sendOTP(email, otp);    
 
         const result = await resendOtpUseCase(dependencies).execute(email,otp);
 
         if (!result) {
              res
-                .status(500)
+                .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
                 .json({ success: false, data: {}, message: "OTP Creation is failed!" });
         } else {
              res
-                .status(200)
+                .status(HttpStatusCode.OK)
                 .json({
                     success: true,
                     data: {},

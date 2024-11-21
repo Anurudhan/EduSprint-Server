@@ -5,4 +5,5 @@ export {createOtpUseCase} from "./createOtpUseCase";
 export {verifyOtpUseCase} from "./verifyOtpUseCase";
 export {resendOtpUseCase} from "./resendOtpUseCase";
 export {loginUserUseCase} from "./loginUserUseCase";
-export {updateUserUseCase} from "./updateUserUseCase"
+export {updateUserUseCase} from "./updateUserUseCase";
+export {updatePasswordUseCase} from "./updatePasswordUseCase"

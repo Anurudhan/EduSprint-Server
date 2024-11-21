@@ -1,3 +1,4 @@
+import { constant } from "../../_lib/common/constant";
 import { UserEntity } from "../../domain/entities";
 import { IDependencies } from "../interfaces/IDependencies";
 
@@ -12,7 +13,7 @@ export const updateUserUseCase = (dependencies:IDependencies) => {
                 
                 return await updateUser(data);
             }
-            catch(error:any){
+            catch(error:constant){
                 throw new Error(error?.message||"User Creation failed");
                 
             }

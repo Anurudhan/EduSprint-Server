@@ -1,3 +1,4 @@
+import { constant } from "../../../_lib/common/constant";
 import { UserEntity } from "../../../domain/entities";
 import { Otp, User } from "../models";
 
@@ -16,7 +17,7 @@ export const verifyOtp = async(email:string,otp:string|number):Promise<boolean |
         
         return verified !== null;
     }
-    catch(error:any){
+    catch(error:constant){
         console.log(error, "Something Went wrong")
         return false
     }

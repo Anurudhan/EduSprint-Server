@@ -3,5 +3,11 @@ auth_service/.env
 
 api_gateway/node_modules
 api_gateway/.env
+api_gateway/logs
+
 
 user_service/node_modules
+user_service/logs
+
+notification_service/node_modules
+notification_service/logs

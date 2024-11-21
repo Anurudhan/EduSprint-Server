@@ -1,3 +1,4 @@
+import { constant } from "../../../_lib/common/constant";
 import { User } from "../models/userModel";
 export const isExistingUsername = async (
 	userName: string
@@ -9,7 +10,7 @@ export const isExistingUsername = async (
 			return true;
 		}
         return false
-	} catch (error: any) {
+	} catch (error: constant) {
 		throw new Error(error?.message);
 	}
 };

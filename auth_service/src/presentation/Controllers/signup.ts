@@ -2,6 +2,9 @@ import { hashPassword } from "../../_lib/utility/bcrypt";
 import { generateOTP, sendOTP } from "../../_lib/utility/otp";
 import { IDependencies } from "../../application/interfaces/IDependencies";
 import { NextFunction, Request, Response } from "express";
+import userCreatedProducer from "../../infrastructure/kafka/producers/userCreatedProducer";
+import { HttpStatusCode } from "../../_lib/common/HttpStatusCode";
+
 
 export const signupController = (dependencies: IDependencies) => {
   const { useCases } = dependencies;
@@ -17,15 +20,15 @@ export const signupController = (dependencies: IDependencies) => {
       const emailResult = await findUserByEmailUseCase(dependencies).execute(email);
       console.log("email oke",emailResult)
       
-      if(emailResult != null){
-        res.status(409).json({success:false,message:"email"});
+      if(emailResult != null && emailResult?.isOtpVerified){
+        res.status(HttpStatusCode.CONFLICT).json({success:false,message:"email"});
         return;
       }
       const usernameResult = await checkExistingUsernameUseCase(dependencies).execute(userName);
       console.log("user oke",usernameResult)
       
-      if(!usernameResult){
-        res.status(409).json({success:false,message:"Username"});
+      if(!usernameResult && emailResult?.isOtpVerified){
+        res.status(HttpStatusCode.CONFLICT).json({success:false,message:"Username"});
         return;
       }
       const otp = await generateOTP();
@@ -35,24 +38,28 @@ export const signupController = (dependencies: IDependencies) => {
       
       await sendOTP(email, otp);
       console.log("sendOtp oke")
+      
       const otpCreate = await createOtpUseCase(dependencies).execute(email,otp)
       if(!otpCreate){
         res
-        .status(500)
+        .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
         .json({ success: false, message: "Otp creation failed!" });
         return
       }
+      if(emailResult == null && usernameResult){
       const created = await createUserUseCase(dependencies).execute(req.body);
       if (!created){
         res
-        .status(500)
+        .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
         .json({ success: false, message: "User creation failed!" });
         return
       }
-      
+      await userCreatedProducer(created);
       console.log("created data \n ------------- \n " +created);
       
-      res.status(200).json({success:true,message:"user created",data:created});
+      res.status(HttpStatusCode.OK).json({success:true,message:"user created",data:created});
+    }
+    res.status(HttpStatusCode.OK).json({success:true,message:"user created",data:emailResult})
       return ;
     } catch (error: any) {
       next(error);

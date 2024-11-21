@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { IDependencies } from "../../application/interfaces/IDependencies";
 import { generateAccessToken, generateRefreshToken } from "../../_lib/http/jwt";
+import { HttpStatusCode } from "../../_lib/common/HttpStatusCode";
 
 export const loginController = (dependencies:IDependencies) =>{
     const{useCases} = dependencies;
@@ -10,30 +11,30 @@ export const loginController = (dependencies:IDependencies) =>{
             const {email,password,role} = req.body;
             const result = await loginUserUseCase(dependencies).execute(email,password,role);
 
-            if (!result) {
+            if (typeof result == "string" ) {
 				res
-					.status(400)
+					.status(HttpStatusCode.BAD_REQUEST)
 					.json({
 						success: false,
-						message: "User doesn't exist or incorrect password",
+						message: result,
 					});
                 return 
 			}
 
 			if (result?.isBlocked) {
                 res
-					.status(400)
+					.status(HttpStatusCode.BAD_REQUEST)
 					.json({
 						success: false,
 						message: "EduSprint team blocked your account",
 					});
                 return 
 			}
-            if(!result?.isVerified){
-                res.status(200).json({
-                    success: true,
+            if(!result?.isVerified && result?.isRequested){
+                res.status(HttpStatusCode.BAD_REQUEST).json({
+                    success: false,
                     data: result,
-                    message: "User logged in successfully but not registered",
+                    message: "Account not verified. Please wait for EduSprint team to verify it",
                 });
                 return ;
             }
@@ -65,7 +66,7 @@ export const loginController = (dependencies:IDependencies) =>{
 				sameSite: "none",
 			  });
 
-			res.status(200).json({
+			res.status(HttpStatusCode.OK).json({
 				success: true,
 				data: result,
 				message: "User logged in successfully",

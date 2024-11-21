@@ -6,6 +6,7 @@ import helmet from 'helmet';
 import { env_variables } from '../_boot/config';
 import { routes } from '../infrastructure/routers';
 import { dependencies } from '../_boot/dependencies';
+import { logger } from '../_lib/utility/middleware/logger';
 
 const app:Application =express();
 const PORT:number = Number(env_variables.PORT)||5001;
@@ -21,7 +22,10 @@ const corsOptions = {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(morgan('dev'));
+const morganStream = {
+    write: (message: any) => logger.info(message.trim()) 
+};
+app.use(morgan('combined', { stream: morganStream }));
 app.use(helmet());
 app.use(cors(corsOptions));
 

@@ -6,7 +6,8 @@ import {
     ICreateOtp,
     IResendOtp,
     ILoginUser,
-    IUpdateUser
+    IUpdateUser,
+    IUpdatePasswordUseCase
  } from "../../domain/IUseCases";
 
 
@@ -19,4 +20,5 @@ export interface IUseCases {
     resendOtpUseCase:(dependencies:any) => IResendOtp;
     loginUserUseCase:(dependencies:any) => ILoginUser;
     updateUserUseCase:(dependencies:any) => IUpdateUser;
+    updatePasswordUseCase:(dependencies:any)=> IUpdatePasswordUseCase;
 }

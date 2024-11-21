@@ -1,68 +1,65 @@
-// src/middleware/validators.ts
-
+import * as yup from "yup";
 import { Request, Response, NextFunction } from "express";
+import { constant } from "../../common/constant";
 
-// Email validation middleware
-export const validateEmailMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const { email } = req.body;
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Email validation schema
+const emailSchema = yup.object({
+  email: yup.string()
+  .email('Invalid email format') // Strict email format check
+  .required('Email is required')
+  .matches(/^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/, 'Invalid email address format'),
+});
 
-  if (!email || !emailRegex.test(email)) {
-    res.status(400).json({ success: false, message: "Invalid email format" });
-    return 
-  }
+// Password validation schema
+const passwordSchema = yup.object({
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters long")
+    .max(40, "Password cannot exceed 40 characters")
+    .matches(/[a-z]/, "Password must contain at least one lowercase letter")
+    .matches(/[A-Z]/, "Password must contain at least one uppercase letter")
+    .matches(/\d/, "Password must contain at least one number")
+    .matches(/[@$!%*?&#]/, "Password must contain at least one special character")
+    .required("Password is required")
+});
 
-  next();
-};
+// Username validation schema
+const usernameSchema = yup.object({
+  userName: yup
+  .string()
+  .trim() 
+  .min(3, 'Username must be at least 3 characters') // Min length check for username
+  .max(20, 'Username must not exceed 20 characters') // Max length check for username
+  .matches(/^[a-zA-Z0-9_]+$/, 'Username can only contain alphanumeric characters and underscores') // Only alphanumeric and underscores
+  .required('Username is required'),
+});
 
-// Password validation middleware
-export const validatePasswordMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const { password } = req.body;
+// Confirm password validation schema
+const confirmPasswordSchema = yup.object({
+  password: yup.string().required("Password is required"),
+  confirmPassword: yup
+    .string()
+    .oneOf([yup.ref("password"), ""], "Passwords do not match")
+    .required("Confirm password is required"),
+});
 
-  if (password.length < 6 || password.length > 40) {
-    res.status(400).json({ success: false, message: "Password must be between 6 and 40 characters long" });
-    return 
-  }
-  if (!/[a-z]/.test(password)) {
-    res.status(400).json({ success: false, message: "Password must contain at least one lowercase letter" });
-    return 
-  }
-  if (!/[A-Z]/.test(password)) {
-    res.status(400).json({ success: false, message: "Password must contain at least one uppercase letter" });
-    return 
-  }
-  if (!/\d/.test(password)) {
-    res.status(400).json({ success: false, message: "Password must contain at least one number" });
-    return 
-  }
-  if (!/[@$!%*?&#]/.test(password)) {
-    res.status(400).json({ success: false, message: "Password must contain at least one special character" });
-    return 
-  }
+const validate =
+  (schema: yup.ObjectSchema<constant>) =>
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      await schema.validate(req.body, { abortEarly: false });
+      next();
+    } catch (error) {
+      if (error instanceof yup.ValidationError) {
+        res.status(400).json({ success: false, message: error.errors });
+      } else {
+        res.status(500).json({ success: false, message: "Unexpected error occurred" });
+      }
+    }
+  };
 
-  next();
-};
 
-// Username validation middleware
-export const validateUserNameMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const { userName } = req.body;
-
-  if (!userName || userName.trim().length < 2) {
-    res.status(400).json({ success: false, message: "Username must be at least 2 characters long" });
-    return 
-  }
-
-  next();
-};
-
-// Confirm password validation middleware
-export const validateConfirmPasswordMiddleware = (req: Request, res: Response, next: NextFunction) => {
-  const { password, confirmPassword } = req.body;
-
-  if (password !== confirmPassword) {
-    res.status(400).json({ success: false, message: "Passwords do not match" });
-    return 
-  }
-
-  next();
-};
+export const validateEmailMiddleware = validate(emailSchema);
+export const validatePasswordMiddleware = validate(passwordSchema);
+export const validateUserNameMiddleware = validate(usernameSchema);
+export const validateConfirmPasswordMiddleware = validate(confirmPasswordSchema);

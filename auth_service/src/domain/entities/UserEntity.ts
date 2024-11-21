@@ -31,24 +31,26 @@ interface Profile {
 
 export interface UserEntity {
     _id?: Types.ObjectId;
-    firstName: string,
-    lastName: string,
-    userName?: string,
+    firstName?: string,
+    lastName?: string,
+    userName: string,
     email: string,
     password: string,
     role: Role,
-    contact: Contact,
-    profile: Profile,
+    contact?: Contact,
+    profile?: Profile,
     cv?: string,
-    profession: Profession,
-    isBlocked: boolean;
+    profession?: Profession,
+    qualification?: string,
+    isBlocked?: boolean;
     isVerified?: boolean;
+    isOtpVerified?:boolean;
     isRequested?: boolean;
     isGAuth?: boolean;
     isRejected?: boolean;
     lastLoginDate?: Date;
-    loginStreak: number;
-    weeklyLogins: boolean[];
+    loginStreak?: number;
+    weeklyLogins?: boolean[];
     createdAt?: Date;
     updatedAt?: Date;
 }

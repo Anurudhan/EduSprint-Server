@@ -5,6 +5,8 @@ import { OAuth2Client } from "google-auth-library";
 import { IDependencies } from "../../application/interfaces/IDependencies";
 import { generateRandomString } from "../../_lib/utility/bcrypt/generateRandomString";
 import { env_variables } from "../../_boot/config";
+import userCreatedProducer from "../../infrastructure/kafka/producers/userCreatedProducer";
+import { HttpStatusCode } from "../../_lib/common/HttpStatusCode";
 
 
 
@@ -12,18 +14,23 @@ const client = new OAuth2Client(env_variables.GOOGLE_CLIENT_ID);
 
 export const googleAuthController = (dependancies: IDependencies) => {
     const { useCases } = dependancies;
-    const findUserByEmailUseCase = useCases.findUserByEmailUseCase;
+    const {findUserByEmailUseCase,
+        createUserUseCase
+     }= useCases
 
     return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
         try {
-            const { credential } = req.body;
-
+            const { credential, userType } = req.body;
+            console.log(env_variables.GOOGLE_CLIENT_ID);
+            console.log('Received credential:', credential?.substring(0, 20) + '...');
+     
             const ticket = await client.verifyIdToken({
                 idToken: credential,
-                audience: process.env.GOOGLE_CLIENT_ID,
+                audience: env_variables.GOOGLE_CLIENT_ID,
             });
 
             const payload = ticket.getPayload();
+            console.log("Payload Audience (aud):", payload?.aud);
 
             if (!payload || !payload.email) {
                 res.status(400).json({
@@ -35,17 +42,56 @@ export const googleAuthController = (dependancies: IDependencies) => {
 
             const { email } = payload;
 
-            const existingUser = await findUserByEmailUseCase(dependancies).execute(email);
+            let existingUser = await findUserByEmailUseCase(dependancies).execute(email);
+            if(!existingUser){
+                let signUpData = {
+                    email: email,
+                    password: `${generateRandomString()}`,
+                    isGAuth:true,
+                    isOtpVerified:true,
+                    role:userType,
+                    userName:""+ email.split("@")[0].toLowerCase()
+                };
+                existingUser = await createUserUseCase(dependancies).execute(signUpData);
+                if(existingUser) await userCreatedProducer(existingUser);
+            }
 
             if (existingUser && !existingUser.isGAuth) {
-                res.status(400).json({
+                res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
                     existingUser: true,
                     data: existingUser,
-                    message: "Account created using email and password can't login using Google !!",
+                    message: "Google login is not allowed for this account",
                 });
                 return;
-            } else if (existingUser && !existingUser.isBlocked) {
+            }
+            else if(existingUser&&existingUser?.role != userType ){
+                res.status(HttpStatusCode.BAD_REQUEST).json({
+                    success: false,
+                    existingUser: true,
+                    data: existingUser,
+                    message: `Login not allowed with this account role. Please use the correct account!`,
+                });
+                return;
+            }
+            else if(existingUser&&!existingUser.isVerified && existingUser.isRequested){
+                res.status(HttpStatusCode.BAD_REQUEST).json({
+                    success: false,
+                    existingUser: true,
+                    data: existingUser,
+                    message: `Account not verified. Please wait for EduSprint team to verify it.!`,
+                });
+                return;
+            }
+            else if(existingUser&&!existingUser.isVerified && !existingUser.isRequested){
+                res.status(HttpStatusCode.OK).json({
+                    success: true,
+                    data: existingUser,
+                    message: `Account not verified. Please wait for EduSprint team to verify it.!`,
+                });
+                return;
+            }
+             else if (existingUser && !existingUser.isBlocked) {
                 const accessToken = generateAccessToken({
                     _id: String(existingUser?._id),
                     email: String(existingUser?.email),
@@ -70,7 +116,7 @@ export const googleAuthController = (dependancies: IDependencies) => {
                     sameSite: "none",
                 });
 
-                res.status(200).json({
+                res.status(HttpStatusCode.OK).json({
                     success: true,
                     existingUser: true,
                     data: existingUser,
@@ -78,7 +124,7 @@ export const googleAuthController = (dependancies: IDependencies) => {
                 });
                 return;
             } else if (existingUser && existingUser.isBlocked) {
-                res.status(400).json({
+                res.status(HttpStatusCode.BAD_REQUEST).json({
                     success: false,
                     existingUser: true,
                     data: existingUser,
@@ -86,15 +132,10 @@ export const googleAuthController = (dependancies: IDependencies) => {
                 });
                 return;
             } else {
-                let signUpData = {
-                    email: email,
-                    password: `${generateRandomString()}`,
-                };
-
-                res.status(200).json({
+                
+                res.status(HttpStatusCode.OK).json({
                     success: true,
-                    existingUser: false,
-                    data: signUpData,
+                    data: existingUser,
                     message: "User Google login!",
                 });
                 return;

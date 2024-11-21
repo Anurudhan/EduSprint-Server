@@ -1,3 +1,4 @@
+import { constant } from "../../../_lib/common/constant";
 import { UserEntity } from "../../../domain/entities";
 import { User } from "../models/userModel";
 
@@ -13,7 +14,7 @@ export const createUser = async(data:UserEntity) : Promise <UserEntity |null> =>
         }
         return newUser
     }
-    catch(error:any){
+    catch(error:constant){
         throw new Error(error?.message);   
     }
 }

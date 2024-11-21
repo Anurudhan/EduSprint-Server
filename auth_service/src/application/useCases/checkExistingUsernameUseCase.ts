@@ -1,5 +1,6 @@
 import { NextFunction,Request,response } from "express";
 import { IDependencies } from "../interfaces/IDependencies";
+import { constant } from "../../_lib/common/constant";
 
 export const checkExistingUsernameUseCase = (dependencies:IDependencies) => {
     const {repositories : {isExistingUsername}} = dependencies
@@ -9,7 +10,7 @@ export const checkExistingUsernameUseCase = (dependencies:IDependencies) => {
             try{
                 return await isExistingUsername(userName)
             }
-            catch(err:any){
+            catch(err:constant){
                 throw new Error(err?.message);
             }
         }

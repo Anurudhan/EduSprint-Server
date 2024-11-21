@@ -3,6 +3,8 @@ import { generateAccessToken, generateRefreshToken } from "../../_lib/http/jwt";
 import { hashPassword } from "../../_lib/utility/bcrypt";
 import { IDependencies } from "../../application/interfaces/IDependencies";
 import { NextFunction, Request, Response } from "express";
+import userCreatedProducer from "../../infrastructure/kafka/producers/userCreatedProducer";
+import { HttpStatusCode } from "../../_lib/common/HttpStatusCode";
 
 export const registerUserController = (dependencies: IDependencies) => {
   const { useCases } = dependencies;
@@ -10,16 +12,15 @@ export const registerUserController = (dependencies: IDependencies) => {
 
   return async (req: Request, res: Response, next: NextFunction):Promise<void> => {
     try {
-      console.log(req.body);
-	  req.body.password = await hashPassword(req.body.password);
-	  
+      
       const updated = await updateUserUseCase(dependencies).execute(req.body);
       console.log("updated data  \n",updated)
       
       if(updated == null){
-        res.status(400).json({success:false,message:"user registered failed!"});
+        res.status(HttpStatusCode.BAD_REQUEST).json({success:false,message:"user registered failed!"});
         return;
       }
+	  await userCreatedProducer(updated);
       const accessToken = generateAccessToken({
 				_id: String(updated?._id),
 				email: updated?.email!,
@@ -47,7 +48,7 @@ export const registerUserController = (dependencies: IDependencies) => {
 				sameSite: "none",
 			  });
 
-      res.status(200).json({success:true,message:"user Registered succesfully",data:updated});
+      res.status(HttpStatusCode.OK).json({success:true,message:"user Registered succesfully",data:updated});
       return ;
     } catch (error: any) {
       next(error);

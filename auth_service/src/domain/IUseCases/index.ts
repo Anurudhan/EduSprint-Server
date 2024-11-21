@@ -6,3 +6,4 @@ export * from "./ICreateOtp";
 export * from "./IResendOtp";
 export * from "./ILoginUser";
 export * from "./IUpdateUser";
+export * from "./IUpdatePasswordUseCase";
