@@ -11,7 +11,7 @@ dotenv.config()
 console.log(process.env.CLIENT_URL,"=======notification=========");
 
 const app: Application = express();
-const PORT: number = Number(process.env.PORT) || 5003;
+const PORT: number = Number(process.env.PORT) || 5004;
 
 
 

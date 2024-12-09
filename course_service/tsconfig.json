@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ES2021",                    // Modern JavaScript features
+    "module": "CommonJS",                  // For Node.js compatibility
+    "rootDir": "./src",                    // Source directory for your TypeScript code
+    "outDir": "./dist",                    // Output directory for compiled JavaScript
+    "strict": true,                        // Enable strict type-checking
+    "esModuleInterop": true,               // Better module compatibility
+    "forceConsistentCasingInFileNames": true, // Avoid case-sensitive issues
+    "skipLibCheck": true,                  // Skip checking declaration files
+    "resolveJsonModule": true,             // Allows importing JSON files
+    "typeRoots": ["./node_modules/@types"], // Include type definitions
+    "sourceMap": true                      // Useful for debugging
+  },
+  "include": ["src"],                      // Files to include for compilation
+  "exclude": ["node_modules", "dist"]      // Files to exclude
+}

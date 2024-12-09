@@ -7,6 +7,7 @@ import { env_variables } from '../_boot/config';
 import { routes } from '../infrastructure/routers';
 import { dependencies } from '../_boot/dependencies';
 import { logger } from '../_lib/utility/middleware/logger';
+import { HttpStatusCode } from '../_lib/common/HttpStatusCode';
 
 const app:Application =express();
 const PORT:number = Number(env_variables.PORT)||5001;
@@ -30,13 +31,13 @@ app.use(helmet());
 app.use(cors(corsOptions));
 
 app.get('/health', (req: Request, res: Response) => {
-    res.status(200).json({ success: true, message: "Auth service is up and running!" });
+    res.status(HttpStatusCode.OK).json({ success: true, message: "Auth service is up and running!" });
 });
 
 app.use('/',routes(dependencies))
 
 app.all("*", (req: Request, res: Response) => {
-    res.status(404).json({ success: false, status: 404, message: "API Not found--->AUTH" });
+    res.status(HttpStatusCode.BAD_REQUEST).json({ success: false, status: HttpStatusCode.BAD_REQUEST    , message: "API Not found--->AUTH" });
 });
 
 // const start = () => {
